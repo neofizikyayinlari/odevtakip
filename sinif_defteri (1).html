@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sınıf Defteri">
+<meta name="theme-color" content="#0f0f1a">
+<title>Sınıf Defteri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0f1a;--bg2:#1a1a2e;--bg3:#16213e;
+  --card:#1e1e32;--card2:#252540;--card3:#2a2a4a;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#f0f0ff;--text2:rgba(240,240,255,0.55);--text3:rgba(240,240,255,0.28);
+  --accent:#6c63ff;--accent2:#8b84ff;
+  --green:#22c98e;--green-bg:rgba(34,201,142,0.13);
+  --red:#ff5c7a;--red-bg:rgba(255,92,122,0.13);
+  --amber:#f5a623;--amber-bg:rgba(245,166,35,0.13);
+  --blue:#4da8ff;--blue-bg:rgba(77,168,255,0.13);
+  --r:14px;--rsm:9px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);overflow:hidden}
+body{display:flex;flex-direction:column}
+
+/* ===== LAYOUT ===== */
+#app{display:flex;height:100%;padding-top:var(--safe-top)}
+
+/* TABLET: sidebar left + content right */
+@media(min-width:768px){
+  #app{flex-direction:row}
+  .sidebar{display:flex;flex-direction:column;width:260px;min-width:260px;height:100%;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0}
+  .main-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{border-bottom:1px solid var(--border);padding:18px 24px;flex-shrink:0}
+  .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 24px}
+  .bottomnav{display:none}
+  .fab{bottom:24px;right:24px}
+  .page{padding:0}
+}
+
+/* PHONE: topbar + scrollable content + bottomnav */
+@media(max-width:767px){
+  #app{flex-direction:column}
+  .sidebar{display:none}
+  .main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+  .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 18px;flex-shrink:0}
+  .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .bottomnav{background:var(--bg2);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom);flex-shrink:0}
+  .page{padding:16px}
+  .fab{bottom:calc(var(--safe-bottom) + 74px);right:18px}
+}
+
+/* SIDEBAR (tablet only) */
+.sidebar-header{padding:20px 18px 12px}
+.sidebar-logo{font-size:16px;font-weight:700;color:var(--text)}
+.sidebar-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.sidebar-sep{height:1px;background:var(--border);margin:4px 12px}
+.sidebar-section{padding:10px 18px 4px;font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--text3);text-transform:uppercase}
+.side-btn{display:flex;align-items:center;gap:10px;padding:11px 18px;border:none;background:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;width:100%;text-align:left;border-radius:0;transition:background .15s,color .15s}
+.side-btn:hover{background:var(--card);color:var(--text)}
+.side-btn.active{background:rgba(108,99,255,0.18);color:var(--accent2);font-weight:600}
+.side-btn svg{width:18px;height:18px;flex-shrink:0}
+.side-sinif-btn{display:flex;align-items:center;justify-content:space-between;padding:9px 18px;border:none;background:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;text-align:left;transition:background .15s}
+.side-sinif-btn:hover{background:var(--card)}
+.side-sinif-cnt{font-size:11px;background:var(--card2);color:var(--text3);padding:1px 8px;border-radius:20px}
+.side-og-btn{display:flex;align-items:center;gap:8px;padding:8px 18px 8px 36px;border:none;background:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12.5px;cursor:pointer;width:100%;text-align:left;transition:background .15s;overflow:hidden}
+.side-og-btn:hover{background:var(--card)}
+.side-og-btn.active{color:var(--accent2)}
+.side-og-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-title{font-size:16px;font-weight:700}
+.topbar-sub{font-size:11px;color:var(--text2)}
+@media(min-width:768px){.topbar-back-btn{display:none}}
+
+/* BOTTOM NAV */
+.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;border:none;background:none;color:var(--text3);font-size:10px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:color .2s}
+.bn-btn.active{color:var(--accent2)}
+.bn-btn svg{width:22px;height:22px}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--rsm);border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;text-align:center;justify-content:center}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:active{opacity:.85;transform:scale(0.97)}
+.btn-ghost{background:var(--card2);color:var(--text);border:1px solid var(--border2)}
+.btn-ghost:active{opacity:.7}
+.btn-danger{background:var(--red-bg);color:var(--red);border:none}
+.btn-sm{padding:7px 13px;font-size:12.5px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+
+/* STATS GRID */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+@media(min-width:768px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.stat-label{font-size:10.5px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.stat-val{font-size:26px;font-weight:700;color:var(--text);line-height:1}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green)}
+.b-red{background:var(--red-bg);color:var(--red)}
+.b-amber{background:var(--amber-bg);color:var(--amber)}
+.b-blue{background:var(--blue-bg);color:var(--blue)}
+.b-accent{background:rgba(108,99,255,0.15);color:var(--accent2)}
+
+/* PROGRESS BAR */
+.pbar-wrap{background:rgba(255,255,255,0.07);border-radius:20px;height:5px;overflow:hidden;flex:1}
+.pbar{height:5px;border-radius:20px;transition:width .3s}
+
+/* LIST ITEMS */
+.list-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.list-item:last-child{border-bottom:none}
+
+/* AVATAR */
+.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.av-sm{width:28px;height:28px;font-size:10px}
+.av-lg{width:52px;height:52px;font-size:14px}
+
+/* ===== FORMS - BOXED INPUT GROUPS ===== */
+.form-section{background:var(--card);border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.form-section-title{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;padding:12px 16px 0}
+.form-row{display:flex;align-items:stretch;border-bottom:1px solid var(--border)}
+.form-row:last-child{border-bottom:none}
+.form-row.two-col{display:grid;grid-template-columns:1fr 1fr}
+.form-row.three-col{display:grid;grid-template-columns:1fr 1fr 1fr}
+.form-field{display:flex;flex-direction:column;padding:0;flex:1;position:relative;border-right:1px solid var(--border)}
+.form-field:last-child{border-right:none}
+.form-field label{font-size:10.5px;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;padding:10px 14px 0}
+.form-field input,.form-field select,.form-field textarea{background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:6px 14px 12px;width:100%;-webkit-appearance:none}
+.form-field select option{background:var(--bg2)}
+.form-field textarea{min-height:72px;resize:none;padding:6px 14px 12px}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{background:rgba(108,99,255,0.07)}
+
+/* SHEET / MODAL */
+.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:flex-end;justify-content:center}
+.sheet-overlay.open{display:flex}
+.sheet{background:var(--bg2);border-radius:22px 22px 0 0;padding:8px 20px calc(20px + var(--safe-bottom));width:100%;max-width:540px;max-height:92vh;overflow-y:auto;animation:su .25s ease}
+@media(min-width:768px){
+  .sheet-overlay{align-items:center}
+  .sheet{border-radius:18px;max-height:85vh;margin-bottom:0;padding-bottom:20px}
+}
+.sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px}
+.sheet-title{font-size:17px;font-weight:700;margin-bottom:16px;color:var(--text)}
+.sheet-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* TAKIP SHEET */
+.takip-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.takip-row:last-child{border-bottom:none}
+.takip-name{flex:1;font-size:13px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pct-box{display:flex;align-items:center;gap:4px}
+.pct-box input{width:60px;background:var(--card2);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:6px 8px;text-align:center;outline:none;-webkit-appearance:none}
+.pct-box input:focus{border-color:var(--accent)}
+.pct-box span{font-size:12px;color:var(--text3)}
+
+/* SINIF CHIPS */
+.chips{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{display:inline-flex;align-items:center;padding:7px 15px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid transparent;transition:all .15s}
+.chip.active{border-color:currentColor}
+.c11A{background:rgba(108,99,255,0.15);color:#8b84ff}
+.c11B{background:rgba(34,201,142,0.15);color:#22c98e}
+.c11C{background:rgba(245,166,35,0.15);color:#f5a623}
+.c11D{background:rgba(255,107,157,0.15);color:#ff6b9d}
+.c-all{background:rgba(240,240,255,0.08);color:var(--text2)}
+
+/* NOTE CHIP */
+.note-chip{display:flex;align-items:flex-start;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:var(--rsm);padding:11px 13px;margin-bottom:8px}
+.note-text{font-size:13px;color:var(--text2);flex:1;line-height:1.55}
+.del-btn{background:none;border:none;color:var(--text3);cursor:pointer;padding:0;font-size:16px;flex-shrink:0;line-height:1}
+
+/* BACK BTN */
+.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--accent2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:0;cursor:pointer;margin-bottom:14px}
+@media(min-width:768px){.back-btn{margin-bottom:18px;font-size:15px}}
+
+/* DET HEADER */
+.det-header{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px;display:flex;align-items:center;gap:14px}
+
+/* SEC HEADER */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px}
+.sec-title{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase}
+
+/* SEARCH */
+.search-wrap{position:relative;margin-bottom:14px}
+.search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.search-input{width:100%;padding:11px 14px 11px 40px;background:var(--card);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;-webkit-appearance:none}
+.search-input:focus{border-color:var(--accent)}
+
+/* FAB */
+.fab{position:fixed;width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(108,99,255,0.45);z-index:100;transition:transform .15s}
+.fab:active{transform:scale(0.91)}
+
+/* EMPTY */
+.empty{text-align:center;padding:32px 16px;color:var(--text3);font-size:14px}
+
+/* TABLET 2-col grid for cards */
+@media(min-width:1024px){
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid-2 .card{margin-bottom:0}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SIDEBAR (tablet/desktop only) -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">📚 Sınıf Defteri</div>
+      <div class="sidebar-sub" id="sb-date"></div>
+    </div>
+    <div class="sidebar-sep"></div>
+    <button class="side-btn active" id="sb-dash" onclick="showPage('dash')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Genel Bakış
+    </button>
+    <button class="side-btn" id="sb-odevler" onclick="showPage('odevler')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Ödevler
+    </button>
+    <button class="side-btn" id="sb-notlar" onclick="showPage('notlar')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+      Notlar
+    </button>
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-section">Sınıflar</div>
+    <div id="sb-siniflar"></div>
+    <div style="margin-top:auto;padding:14px 12px 20px">
+      <button class="btn btn-primary" style="width:100%;" onclick="fabAction()">+ Ekle</button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="back-btn topbar-back-btn" id="topbar-back" style="display:none" onclick="goBack()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title" id="topbar-title">Genel Bakış</div>
+          <div class="topbar-sub" id="topbar-sub" style="display:none"></div>
+        </div>
+      </div>
+      <div id="topbar-right"></div>
+    </div>
+
+    <div class="content" id="main-content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dash">
+        <div class="stats" id="dash-stats"></div>
+        <div class="grid-2">
+          <div>
+            <div class="sec-hdr"><span class="sec-title">Yaklaşan Ödevler</span></div>
+            <div class="card" id="dash-hw"></div>
+          </div>
+          <div>
+            <div class="sec-hdr"><span class="sec-title">Sınıflar</span></div>
+            <div id="dash-siniflar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ÖDEVLER -->
+      <div class="page" id="page-odevler">
+        <div class="chips" id="ov-chips"></div>
+        <div id="ov-list"></div>
+        <div style="height:80px"></div>
+      </div>
+
+      <!-- NOTLAR -->
+      <div class="page" id="page-notlar">
+        <div class="chips" id="nt-chips"></div>
+        <div id="nt-list"></div>
+        <div style="height:80px"></div>
+      </div>
+
+      <!-- ÖĞRENCİLER -->
+      <div class="page" id="page-ogrenciler">
+        <div class="chips" id="og-chips"></div>
+        <div class="search-wrap">
+          <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="og-search" class="search-input" placeholder="Öğrenci veya numara ara..." oninput="renderOgrenciler()">
+        </div>
+        <div id="og-list"></div>
+        <div style="height:80px"></div>
+      </div>
+
+      <!-- DETAY -->
+      <div class="page" id="page-detay">
+        <button class="back-btn" onclick="goBack()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+          Geri Dön
+        </button>
+        <div class="det-header" id="det-header"></div>
+        <div class="stats" id="det-stats"></div>
+        <div class="sec-hdr"><span class="sec-title">Ödev Durumu</span></div>
+        <div class="card" id="det-hw"></div>
+        <div class="sec-hdr">
+          <span class="sec-title">Öğrenci Notları</span>
+          <button class="btn btn-ghost btn-sm" onclick="openKN()">+ Not Al</button>
+        </div>
+        <div id="det-notes"></div>
+        <div style="height:30px"></div>
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- BOTTOM NAV (phone only) -->
+    <nav class="bottomnav">
+      <button class="bn-btn active" id="bn-dash" onclick="showPage('dash')">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Genel
+      </button>
+      <button class="bn-btn" id="bn-odevler" onclick="showPage('odevler')">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Ödevler
+      </button>
+      <button class="bn-btn" id="bn-notlar" onclick="showPage('notlar')">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+        Notlar
+      </button>
+      <button class="bn-btn" id="bn-ogrenciler" onclick="showPage('ogrenciler')">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Öğrenciler
+      </button>
+    </nav>
+  </div><!-- /main-area -->
+</div><!-- /app -->
+
+<!-- FAB -->
+<button class="fab" id="fab-btn" onclick="fabAction()" aria-label="Ekle">
+  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<!-- ===== SHEETS ===== -->
+
+<!-- ÖDEV EKLE -->
+<div class="sheet-overlay" id="ov-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📋 Ödev Ekle</div>
+    <div class="form-section">
+      <div class="form-section-title">ÖDEV BİLGİLERİ</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Ödev Adı</label>
+          <input id="ov-ad" type="text" placeholder="Matematik Alıştırmaları">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Bitiş Tarihi</label>
+          <input id="ov-tarih" type="date">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Açıklama (opsiyonel)</label>
+          <textarea id="ov-not" placeholder="Sayfa numarası, konu vb..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" onclick="closeSheet('ov-sheet')">İptal</button>
+      <button class="btn btn-primary" onclick="addOdev()">Ekle</button>
+    </div>
+  </div>
+</div>
+
+<!-- ÖĞRENCİ EKLE -->
+<div class="sheet-overlay" id="og-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">👤 Öğrenci Ekle</div>
+    <div class="form-section">
+      <div class="form-section-title">ÖĞRENCİ BİLGİLERİ</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Ad Soyad</label>
+          <input id="og-ad" type="text" placeholder="Ad Soyad">
+        </div>
+      </div>
+      <div class="form-row two-col">
+        <div class="form-field">
+          <label>Okul No</label>
+          <input id="og-no" type="number" placeholder="105">
+        </div>
+        <div class="form-field">
+          <label>Sınıf</label>
+          <select id="og-sinif">
+            <option value="11A">11-A</option><option value="11B">11-B</option>
+            <option value="11C">11-C</option><option value="11D">11-D</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" onclick="closeSheet('og-sheet')">İptal</button>
+      <button class="btn btn-primary" onclick="addOgrenci()">Ekle</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOT EKLE -->
+<div class="sheet-overlay" id="nt-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📊 Not Gir</div>
+    <div class="form-section">
+      <div class="form-section-title">ÖĞRENCİ SEÇ</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Sınıf</label>
+          <select id="nt-sinif" onchange="fillNtOg()">
+            <option value="11A">11-A</option><option value="11B">11-B</option>
+            <option value="11C">11-C</option><option value="11D">11-D</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Öğrenci</label>
+          <select id="nt-og"></select>
+        </div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">PUANLAR (0–100)</div>
+      <div class="form-row three-col">
+        <div class="form-field">
+          <label>Ders Notu</label>
+          <input id="nt-ders" type="number" min="0" max="100" placeholder="85">
+        </div>
+        <div class="form-field">
+          <label>Performans</label>
+          <input id="nt-perf" type="number" min="0" max="100" placeholder="90">
+        </div>
+        <div class="form-field">
+          <label>Proje</label>
+          <input id="nt-proje" type="number" min="0" max="100" placeholder="78">
+        </div>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" onclick="closeSheet('nt-sheet')">İptal</button>
+      <button class="btn btn-primary" onclick="addNot()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- KÜÇÜK NOT -->
+<div class="sheet-overlay" id="kn-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="kn-title">📝 Öğrenci Notu</div>
+    <div class="form-section">
+      <div class="form-section-title">NOT</div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Not İçeriği</label>
+          <textarea id="kn-text" placeholder="Bu öğrenci hakkında bir gözlem, not veya hatırlatıcı..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" onclick="closeSheet('kn-sheet')">İptal</button>
+      <button class="btn btn-primary" onclick="addKN()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ÖDEV TAKİP -->
+<div class="sheet-overlay" id="takip-sheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="takip-title">✅ Ödev Takibi</div>
+    <div class="chips" id="takip-chips"></div>
+    <div id="takip-ozet" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+    <div class="form-section">
+      <div class="form-section-title">TAMAMLANMA YÜZDESİ GİR</div>
+      <div id="takip-list" style="padding:0 0 4px"></div>
+    </div>
+    <div style="margin-top:14px">
+      <button class="btn btn-ghost" style="width:100%" onclick="closeSheet('takip-sheet')">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SINIFLAR=['11A','11B','11C','11D'];
+const SL={'11A':'11-A','11B':'11-B','11C':'11-C','11D':'11-D'};
+const CCLS={'11A':'c11A','11B':'c11B','11C':'c11C','11D':'c11D'};
+const AVCLR={
+  '11A':['rgba(108,99,255,0.2)','#8b84ff'],
+  '11B':['rgba(34,201,142,0.2)','#22c98e'],
+  '11C':['rgba(245,166,35,0.2)','#f5a623'],
+  '11D':['rgba(255,107,157,0.2)','#ff6b9d']
+};
+
+const RAW={
+  '11A':[[105,'CEYLİN BALÇIK'],[120,'BATU FEDAKAR'],[142,'ABDULLAH AGAH YAVAŞ'],[153,'ASYA APAYDIN'],[159,'AYSİMA ATASELİM'],[176,'AHMET EMİR ÖZTÜRK'],[196,'AHMET ENES ÇETİN'],[199,'BETÜL MENTEŞ'],[211,'ELİF CANBEK'],[213,'ELİF LARA GÜLER'],[218,'AHMET SELİM ALTIPARMAK'],[219,'HATİCE LEMAHMUTOĞLU'],[221,'ADA BULUT'],[223,'MİRAY DURU KORKMAZ'],[226,'AHMET TUNCER'],[268,'EFEKAN ERDEM KOÇ'],[270,'KEREM ALTİNEL'],[272,'ALİ ALTUNDEMİR'],[273,'ESRA DEMİREL'],[274,'BATU ŞİŞMAN'],[278,'BATUHAN ÇAKIN'],[280,'AHMET YASER GÖKALP'],[282,'YUSUF ÖZKAYA'],[322,'EGEHAN YILDIRIM'],[329,'SENA ERDEM'],[400,'OĞUZ KAĞAN DORUK'],[417,'İREM ACAROĞLU'],[484,'MERT EMİR SARIUSTA']],
+  '11B':[[225,'DURU UZUN'],[229,'ECRİN COŞKUN'],[239,'ECRİN UYAR'],[247,'MİRAY KARATAŞ'],[257,'ELİF NAZ YILDIRIM'],[259,'NAZLI ASMİN ALPASLAN'],[261,'SİMAY GÖK'],[265,'SUDEN AKDOĞAN'],[267,'ZEHRA ADAL'],[269,'ZEYNEP ÖZHARAT'],[302,'DAĞHAN OYMAK'],[304,'EFE İLİŞEN'],[306,'EKREM EREN DURSUN'],[307,'AYSEL SEZİN YALÇINKAYA'],[308,'ENSAR YAŞAR KUNT'],[312,'ERDEM KOÇ'],[316,'FEHMİ DENİZ AYTAN'],[318,'İBRAHİM TÜRKMEN'],[324,'TUĞRA ATEŞLİ'],[326,'MURAT YAĞIZ AKKOÇ'],[328,'ÖMER FARUK DURMUŞ'],[330,'BUĞRA LEBLEBİCİER'],[332,'ÇINAR ÇATALKAYA'],[352,'DOĞAÇ UTKU ŞENER'],[354,'RAMAZAN BOZDAĞ'],[413,'IRMAK DERDİYOK'],[452,'SERVET AYDIN'],[516,'KAAN DEMİR']],
+  '11C':[[143,'HAYRUNNİSA KARAKAŞ'],[178,'AHMET MUHSİN YAZICI'],[227,'DEFNE DİNÇ'],[271,'ESLEM ÜNVER'],[285,'MUNİSE NİLDA DUMAN'],[293,'BERİL BUDAK'],[299,'ELİF AKKOYUN'],[309,'AYSU ÜNAL'],[311,'CANSU ERDOĞAN'],[313,'ELİF AK'],[315,'HAVVANUR YENTÜR'],[317,'ALYA SU URLU'],[323,'ELİF YILMAZ'],[325,'SUDE NAZ İŞCAN'],[333,'ECRİN AYDIN'],[359,'MELİS GÜL'],[362,'KAAN KURTULGAN'],[372,'MERT ÇATALAĞAÇ'],[378,'MİRSAT VARDAR'],[380,'MUHAMMED MUSAB COŞKUN'],[390,'MUSTAFA EREN BADEM'],[404,'OKAN ÖZGÜR'],[406,'ONUR BEYGİRET'],[408,'HAKKI BARTU PALA'],[410,'EYMEN DORUK ATAKAN'],[412,'İSMAİL ERDEM ASLAN'],[414,'KAAN AKYAR'],[416,'GÜNEŞ EKİN TABAN'],[420,'KEMAL EFE COŞAR'],[426,'BATURALP ŞENEL'],[434,'ÖMER FARUK BAŞER']],
+  '11D':[[179,'BEYZA ERKEK'],[235,'ELA VARIŞLI'],[283,'İREM YILMAZ'],[319,'REYYAN YAVUZEL'],[321,'SENA DOLU'],[331,'ZEYNEP ŞENAY AKKURT'],[363,'ZEYNEP MANAV'],[397,'ÖYKÜ BAŞARIR'],[399,'ZEHRA NAZ APTİOĞLU'],[401,'ZEYNEP SEYİTOĞLU'],[402,'OĞUZ MERT CEVİZ'],[403,'ECE ÖZEN'],[405,'ESMA MERT'],[407,'YAĞMUR NİSA ÖZ'],[415,'ZAHİDE ÇOBANOĞLU'],[418,'OSMAN BERAT ATAŞ'],[422,'YUSUF ENES ÇETİNTAŞ'],[424,'OSMAN KEREM BAŞTÜRK'],[428,'ÖMER EYMEN AKGÜN'],[430,'UMUT AKTÜRK'],[444,'ÖMER HASAN HOŞOĞLU'],[472,'YUSUF YAZMALAR'],[506,'ÇAĞATAYHAN UYANBABA'],[508,'AHMET EREN SAĞLAM'],[514,'KAAN HIZLI']]
+};
+
+let idC=10000;
+function uid(){return ++idC}
+
+function loadSaved(){try{const s=localStorage.getItem('sd_v3');if(s)return JSON.parse(s);}catch(e){}return null;}
+function saveState(){try{localStorage.setItem('sd_v3',JSON.stringify({odevler:S.odevler,notlar:S.notlar,odevTakip:S.odevTakip,kucukNotlar:S.kucukNotlar}));}catch(e){}}
+
+const saved=loadSaved();
+const S={
+  ogrenciler:[],
+  odevler:saved?.odevler||[],
+  notlar:saved?.notlar||[],
+  odevTakip:saved?.odevTakip||{},
+  kucukNotlar:saved?.kucukNotlar||{},
+  page:'dash',prevPage:'dash',secilenId:null,aktifOdevId:null,
+  filOv:'all',filNt:'all',filOg:'all',
+  takipFil:'all',
+  sbOpen:{'11A':true,'11B':false,'11C':false,'11D':false}
+};
+SINIFLAR.forEach(s=>RAW[s].forEach(([no,ad])=>{S.ogrenciler.push({id:uid(),ad,no:String(no),sinif:s});}));
+
+function ini(n){return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+function pbc(v){if(v===null||v===0)return'#ff5c7a';if(v<50)return'#f5a623';if(v<100)return'#4da8ff';return'#22c98e'}
+function getTk(oid,ogid){return S.odevTakip[oid+'_'+ogid]??null}
+function setTk(oid,ogid,v){S.odevTakip[oid+'_'+ogid]=v;saveState()}
+
+function openSheet(id){document.getElementById(id).classList.add('open')}
+function closeSheet(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.sheet-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')})});
+
+const PAGES={
+  'dash':'Genel Bakış','odevler':'Ödevler','notlar':'Notlar','ogrenciler':'Öğrenciler','detay':''
+};
+
+function showPage(p,ogId){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.bn-btn,.side-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  ['dash','odevler','notlar','ogrenciler'].forEach(k=>{
+    const bn=document.getElementById('bn-'+k);
+    const sb=document.getElementById('sb-'+k);
+    if(bn&&k===p) bn.classList.add('active');
+    if(sb&&k===p) sb.classList.add('active');
+  });
+  if(p!=='detay') S.prevPage=p;
+  S.page=p;
+  // topbar
+  document.getElementById('topbar-title').textContent=p==='detay'?(S.ogrenciler.find(o=>o.id===(ogId||S.secilenId))?.ad||'Öğrenci'):PAGES[p];
+  const backBtn=document.getElementById('topbar-back');
+  backBtn.style.display=p==='detay'?'flex':'none';
+  document.getElementById('topbar-sub').style.display='none';
+  document.getElementById('fab-btn').style.display=p==='detay'?'none':'flex';
+
+  if(p==='detay'&&ogId){S.secilenId=ogId;renderDetay(ogId);}
+  if(p==='dash')renderDash();
+  if(p==='odevler')renderOvler();
+  if(p==='notlar')renderNotlar();
+  if(p==='ogrenciler')renderOgrenciler();
+  document.getElementById('main-content').scrollTop=0;
+}
+
+function goBack(){showPage(S.prevPage)}
+
+function fabAction(){
+  if(S.page==='odevler') openSheet('ov-sheet');
+  else if(S.page==='notlar'){fillNtOg();openSheet('nt-sheet');}
+  else if(S.page==='ogrenciler') openSheet('og-sheet');
+  else openSheet('ov-sheet');
+}
+
+// SIDEBAR
+function renderSidebar(){
+  const el=document.getElementById('sb-siniflar');
+  el.innerHTML=SINIFLAR.map(s=>{
+    const ogrs=S.ogrenciler.filter(o=>o.sinif===s).sort((a,b)=>a.ad.localeCompare(b.ad));
+    const open=S.sbOpen[s];
+    const[,fg]=AVCLR[s];
+    let h=`<button class="side-sinif-btn" onclick="toggleSb('${s}')" style="color:${fg}">
+      <span style="display:flex;align-items:center;gap:6px">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="transition:transform .2s;transform:rotate(${open?90:0}deg)"><path d="m9 18 6-6-6-6"/></svg>
+        ${SL[s]}
+      </span>
+      <span class="side-sinif-cnt">${ogrs.length}</span>
+    </button>`;
+    if(open){h+=ogrs.map(o=>`<button class="side-og-btn${S.secilenId===o.id?' active':''}" onclick="showPage('detay',${o.id})">
+      <div class="av av-sm" style="background:${AVCLR[s][0]};color:${AVCLR[s][1]}">${ini(o.ad)}</div>
+      <span class="side-og-name">${o.ad}</span>
+    </button>`).join('');}
+    return h;
+  }).join('');
+}
+function toggleSb(s){S.sbOpen[s]=!S.sbOpen[s];renderSidebar();}
+
+// CHIPS
+function makeChips(containerId,filKey,onSet){
+  const el=document.getElementById(containerId);
+  const items=[{v:'all',l:'Tümü',cls:'c-all'},...SINIFLAR.map(s=>({v:s,l:SL[s],cls:CCLS[s]}))];
+  el.innerHTML=items.map(c=>`<button class="chip ${c.cls}${S[filKey]===c.v?' active':''}" onclick="${onSet}('${c.v}')">${c.l}</button>`).join('');
+}
+function setFilOv(v){S.filOv=v;renderOvler()}
+function setFilNt(v){S.filNt=v;renderNotlar()}
+function setFilOg(v){S.filOg=v;renderOgrenciler()}
+function setTakipFil(v){
+  S.takipFil=v;
+  document.querySelectorAll('#takip-chips .chip').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderTakipList();
+}
+
+// DASHBOARD
+function renderDash(){
+  const d=new Date();
+  const dtxt=d.toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('sb-date').textContent=dtxt;
+  const aktif=S.odevler.filter(o=>new Date(o.tarih)>=new Date()).length;
+  const orts=S.notlar.map(n=>(n.ders+n.perf+n.proje)/3);
+  const ort=orts.length?Math.round(orts.reduce((a,b)=>a+b,0)/orts.length):'-';
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat"><div class="stat-label">Öğrenci</div><div class="stat-val">${S.ogrenciler.length}</div></div>
+    <div class="stat"><div class="stat-label">Aktif Ödev</div><div class="stat-val">${aktif}</div></div>
+    <div class="stat"><div class="stat-label">Ortalama</div><div class="stat-val">${ort}</div></div>
+    <div class="stat"><div class="stat-label">Not Girilen</div><div class="stat-val">${S.notlar.length}</div></div>`;
+
+  const hw=S.odevler.filter(o=>new Date(o.tarih)>=new Date()).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih)).slice(0,6);
+  document.getElementById('dash-hw').innerHTML=hw.length?hw.map(o=>{
+    const f=Math.ceil((new Date(o.tarih)-new Date())/(864e5));
+    const cls=f<=2?'b-red':f<=5?'b-amber':'b-green';
+    return`<div class="list-item"><div style="flex:1"><div style="font-size:14px;font-weight:500">${o.ad}</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${new Date(o.tarih).toLocaleDateString('tr-TR')}</div></div><span class="badge ${cls}">${f===0?'Bugün':f===1?'Yarın':f+' gün'}</span></div>`;
+  }).join(''):'<div class="empty">Yaklaşan ödev yok</div>';
+
+  document.getElementById('dash-siniflar').innerHTML=SINIFLAR.map(s=>{
+    const[bg,fg]=AVCLR[s];
+    const count=S.ogrenciler.filter(o=>o.sinif===s).length;
+    return`<div class="card" style="cursor:pointer;margin-bottom:10px" onclick="setFilOg('${s}');showPage('ogrenciler')">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:42px;height:42px;border-radius:12px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${fg}">${s}</div>
+          <div><div style="font-size:15px;font-weight:600">${SL[s]}</div><div style="font-size:12px;color:var(--text2)">${count} öğrenci</div></div>
+        </div>
+        <svg width="16" height="16" fill="none" stroke="var(--text3)" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ÖDEVLER
+function renderOvler(){
+  makeChips('ov-chips','filOv','setFilOv');
+  const el=document.getElementById('ov-list');
+  if(!S.odevler.length){el.innerHTML='<div class="empty">Henüz ödev eklenmedi.</div>';return;}
+  el.innerHTML=S.odevler.map(o=>{
+    const t=new Date(o.tarih),gecti=t<new Date(),f=Math.ceil((t-new Date())/(864e5));
+    const badge=gecti?`<span class="badge b-red">Geçti</span>`:f<=2?`<span class="badge b-amber">${f===0?'Bugün':f+' gün'}</span>`:`<span class="badge b-green">Aktif</span>`;
+    const ogrs=S.filOv==='all'?S.ogrenciler:S.ogrenciler.filter(g=>g.sinif===S.filOv);
+    const pct=ogrs.length?Math.round(ogrs.reduce((a,g)=>{const v=getTk(o.id,g.id);return a+(v===null?0:v)},0)/ogrs.length):0;
+    const yapti=ogrs.filter(g=>getTk(o.id,g.id)===100).length;
+    return`<div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:12px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:600;margin-bottom:3px">${o.ad}</div>
+          <div style="font-size:12px;color:var(--text2)">${t.toLocaleDateString('tr-TR')}${o.aciklama?' · '+o.aciklama:''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          ${badge}
+          <button class="btn btn-danger btn-sm" onclick="delOdev(${o.id})" style="padding:5px 9px">✕</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div class="pbar-wrap"><div class="pbar" style="width:${pct}%;background:${pbc(pct)}"></div></div>
+        <span style="font-size:12px;color:var(--text2);white-space:nowrap;font-family:'DM Mono',monospace">%${pct} · ${yapti}/${ogrs.length}</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="openTakip(${o.id})">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Öğrenci Takibi Gir
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function openTakip(odevId){
+  S.aktifOdevId=odevId;S.takipFil='all';
+  const o=S.odevler.find(x=>x.id===odevId);
+  document.getElementById('takip-title').textContent='✅ '+o.ad;
+  const chips=[{v:'all',l:'Tümü',cls:'c-all'},...SINIFLAR.map(s=>({v:s,l:SL[s],cls:CCLS[s]}))];
+  document.getElementById('takip-chips').innerHTML=chips.map(c=>`<button class="chip ${c.cls}${S.takipFil===c.v?' active':''}" onclick="setTakipFil('${c.v}')">${c.l}</button>`).join('');
+  renderTakipList();openSheet('takip-sheet');
+}
+
+function renderTakipList(){
+  const oid=S.aktifOdevId;
+  const ogrs=(S.takipFil==='all'?S.ogrenciler:S.ogrenciler.filter(o=>o.sinif===S.takipFil))
+    .sort((a,b)=>a.sinif.localeCompare(b.sinif)||a.ad.localeCompare(b.ad));
+  const yapti=ogrs.filter(o=>getTk(oid,o.id)===100).length;
+  const yapmadi=ogrs.filter(o=>getTk(oid,o.id)===0).length;
+  const girilmedi=ogrs.filter(o=>getTk(oid,o.id)===null).length;
+  document.getElementById('takip-ozet').innerHTML=
+    `<span class="badge b-green">${yapti} tamamladı</span><span class="badge b-red">${yapmadi} yapmadı</span><span class="badge b-amber">${girilmedi} girilmedi</span>`;
+  document.getElementById('takip-list').innerHTML=ogrs.map(og=>{
+    const[bg,fg]=AVCLR[og.sinif];
+    const v=getTk(oid,og.id);
+    return`<div class="takip-row" style="padding:10px 14px">
+      <div class="av av-sm" style="background:${bg};color:${fg}">${ini(og.ad)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="takip-name">${og.ad}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          <div class="pbar-wrap" style="height:4px"><div class="pbar" style="width:${v===null?0:v}%;background:${pbc(v)}"></div></div>
+        </div>
+      </div>
+      <div class="pct-box">
+        <input type="number" min="0" max="100" step="5" value="${v===null?'':v}" placeholder="—"
+          onchange="saveTakip(${oid},${og.id},this)">
+        <span>%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveTakip(oid,ogid,el){
+  const raw=el.value;
+  if(raw==='')setTk(oid,ogid,null);
+  else{const v=Math.min(100,Math.max(0,parseInt(raw)||0));setTk(oid,ogid,v);el.value=v;}
+  renderTakipList();
+  if(S.page==='odevler')renderOvler();
+}
+
+// NOTLAR
+function renderNotlar(){
+  makeChips('nt-chips','filNt','setFilNt');
+  const ogrs=(S.filNt==='all'?S.ogrenciler:S.ogrenciler.filter(o=>o.sinif===S.filNt))
+    .sort((a,b)=>a.sinif.localeCompare(b.sinif)||a.ad.localeCompare(b.ad));
+  document.getElementById('nt-list').innerHTML=ogrs.map(og=>{
+    const n=S.notlar.find(x=>x.ogrenciId===og.id);
+    const[bg,fg]=AVCLR[og.sinif];
+    const ort=n?Math.round((n.ders+n.perf+n.proje)/3):null;
+    const cls=ort===null?'':ort>=85?'b-green':ort>=70?'b-blue':'b-amber';
+    return`<div class="list-item" style="cursor:pointer" onclick="showPage('detay',${og.id})">
+      <div class="av" style="background:${bg};color:${fg}">${ini(og.ad)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${og.ad}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">${SL[og.sinif]} · No: ${og.no}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        ${ort!==null?`<span class="badge ${cls}">${ort}</span><div style="font-size:11px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace">${n.ders}/${n.perf}/${n.proje}</div>`:'<span style="font-size:12px;color:var(--text3)">—</span>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ÖĞRENCİLER
+function renderOgrenciler(){
+  makeChips('og-chips','filOg','setFilOg');
+  const q=(document.getElementById('og-search')?.value||'').toLowerCase();
+  const ogrs=S.ogrenciler
+    .filter(o=>(S.filOg==='all'||o.sinif===S.filOg)&&(o.ad.toLowerCase().includes(q)||o.no.includes(q)))
+    .sort((a,b)=>a.sinif.localeCompare(b.sinif)||a.ad.localeCompare(b.ad));
+  document.getElementById('og-list').innerHTML=ogrs.map(og=>{
+    const[bg,fg]=AVCLR[og.sinif];
+    const kns=(S.kucukNotlar[og.id]||[]).length;
+    const n=S.notlar.find(x=>x.ogrenciId===og.id);
+    const ort=n?Math.round((n.ders+n.perf+n.proje)/3):null;
+    return`<div class="list-item" style="cursor:pointer" onclick="showPage('detay',${og.id})">
+      <div class="av" style="background:${bg};color:${fg}">${ini(og.ad)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${og.ad}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px">No: ${og.no} · ${SL[og.sinif]}${kns?` · ${kns} not`:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        ${ort!==null?`<span class="badge ${ort>=85?'b-green':ort>=70?'b-blue':'b-amber'}">${ort}</span>`:''}
+        <svg width="14" height="14" fill="none" stroke="var(--text3)" stroke-width="2.5" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// DETAY
+function renderDetay(id){
+  const og=S.ogrenciler.find(o=>o.id===id);if(!og)return;
+  renderSidebar();
+  const[bg,fg]=AVCLR[og.sinif];
+  document.getElementById('det-header').innerHTML=`
+    <div class="av av-lg" style="background:${bg};color:${fg}">${ini(og.ad)}</div>
+    <div>
+      <div style="font-size:17px;font-weight:700">${og.ad}</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">${SL[og.sinif]} &nbsp;·&nbsp; Okul No: <span style="font-family:'DM Mono',monospace">${og.no}</span></div>
+    </div>`;
+
+  const n=S.notlar.find(x=>x.ogrenciId===id);
+  const ort=n?Math.round((n.ders+n.perf+n.proje)/3):'-';
+  document.getElementById('det-stats').innerHTML=`
+    <div class="stat"><div class="stat-label">Ders Notu</div><div class="stat-val">${n?n.ders:'—'}</div></div>
+    <div class="stat"><div class="stat-label">Performans</div><div class="stat-val">${n?n.perf:'—'}</div></div>
+    <div class="stat"><div class="stat-label">Proje</div><div class="stat-val">${n?n.proje:'—'}</div></div>
+    <div class="stat"><div class="stat-label">Ortalama</div><div class="stat-val">${ort}</div></div>`;
+
+  const hwel=document.getElementById('det-hw');
+  if(!S.odevler.length){hwel.innerHTML='<div class="empty">Ödev eklenmedi</div>';}
+  else{hwel.innerHTML=S.odevler.map(o=>{
+    const v=getTk(o.id,id);
+    const pct=v===null?0:v;
+    const lbl=v===null?'Girilmedi':v===0?'Yapmadı':v===100?'Tamamladı':`%${v} Kısmi`;
+    const cls=v===null?'b-amber':v===0?'b-red':v===100?'b-green':'b-blue';
+    return`<div class="list-item">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;margin-bottom:5px">${o.ad}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="pbar-wrap" style="height:4px"><div class="pbar" style="width:${pct}%;background:${pbc(v)}"></div></div>
+          <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text2)">${v===null?'—':v+'%'}</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <div class="pct-box">
+          <input type="number" min="0" max="100" step="5" value="${v===null?'':v}" placeholder="%"
+            style="width:52px"
+            onchange="saveDetTk(${o.id},${id},this)">
+          <span>%</span>
+        </div>
+        <span class="badge ${cls}" style="font-size:10px">${lbl}</span>
+      </div>
+    </div>`;
+  }).join('');}
+
+  const kns=S.kucukNotlar[id]||[];
+  document.getElementById('det-notes').innerHTML=kns.length?kns.map((t,i)=>`
+    <div class="note-chip">
+      <span class="note-text">${t}</span>
+      <button class="del-btn" onclick="delKN(${id},${i})" title="Sil">✕</button>
+    </div>`).join(''):'<div style="color:var(--text3);font-size:13px;padding:6px 0">Henüz not alınmadı.</div>';
+}
+
+function saveDetTk(oid,ogid,el){
+  const raw=el.value;
+  if(raw==='')setTk(oid,ogid,null);
+  else{const v=Math.min(100,Math.max(0,parseInt(raw)||0));setTk(oid,ogid,v);el.value=v;}
+  renderDetay(ogid);
+}
+
+function openKN(){
+  const og=S.ogrenciler.find(o=>o.id===S.secilenId);
+  if(og) document.getElementById('kn-title').textContent='📝 '+og.ad+' — Not Al';
+  openSheet('kn-sheet');
+}
+
+// ADD FUNCS
+function addOdev(){
+  const ad=document.getElementById('ov-ad').value.trim();
+  const tarih=document.getElementById('ov-tarih').value;
+  if(!ad||!tarih)return;
+  S.odevler.push({id:uid(),ad,tarih,aciklama:document.getElementById('ov-not').value.trim()});
+  saveState();closeSheet('ov-sheet');
+  document.getElementById('ov-ad').value='';document.getElementById('ov-tarih').value='';document.getElementById('ov-not').value='';
+  renderOvler();renderDash();
+}
+
+function delOdev(id){
+  if(!confirm('Bu ödevi silmek istiyor musunuz?'))return;
+  S.odevler=S.odevler.filter(o=>o.id!==id);saveState();renderOvler();renderDash();
+}
+
+function fillNtOg(){
+  const s=document.getElementById('nt-sinif').value;
+  document.getElementById('nt-og').innerHTML=S.ogrenciler.filter(o=>o.sinif===s).sort((a,b)=>a.ad.localeCompare(b.ad)).map(o=>`<option value="${o.id}">${o.ad}</option>`).join('');
+}
+
+function addNot(){
+  const ogId=parseInt(document.getElementById('nt-og').value);
+  const ders=parseInt(document.getElementById('nt-ders').value)||0;
+  const perf=parseInt(document.getElementById('nt-perf').value)||0;
+  const proje=parseInt(document.getElementById('nt-proje').value)||0;
+  const idx=S.notlar.findIndex(n=>n.ogrenciId===ogId);
+  if(idx>=0)S.notlar[idx]={ogrenciId:ogId,ders,perf,proje};
+  else S.notlar.push({ogrenciId:ogId,ders,perf,proje});
+  saveState();closeSheet('nt-sheet');renderNotlar();renderDash();
+  if(S.secilenId===ogId&&S.page==='detay')renderDetay(ogId);
+}
+
+function addOgrenci(){
+  const ad=document.getElementById('og-ad').value.trim();
+  const no=document.getElementById('og-no').value.trim();
+  const sinif=document.getElementById('og-sinif').value;
+  if(!ad)return;
+  S.ogrenciler.push({id:uid(),ad,no:no||'—',sinif});
+  closeSheet('og-sheet');
+  document.getElementById('og-ad').value='';document.getElementById('og-no').value='';
+  renderOgrenciler();renderDash();renderSidebar();
+}
+
+function addKN(){
+  const txt=document.getElementById('kn-text').value.trim();if(!txt)return;
+  if(!S.kucukNotlar[S.secilenId])S.kucukNotlar[S.secilenId]=[];
+  S.kucukNotlar[S.secilenId].push(txt);
+  saveState();closeSheet('kn-sheet');document.getElementById('kn-text').value='';
+  renderDetay(S.secilenId);
+}
+
+function delKN(ogId,idx){
+  S.kucukNotlar[ogId].splice(idx,1);saveState();renderDetay(ogId);
+}
+
+// INIT
+fillNtOg();
+renderSidebar();
+renderDash();
+document.getElementById('sb-date').textContent=new Date().toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+</script>
+</body>
+</html>
